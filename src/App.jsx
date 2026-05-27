@@ -1,9 +1,10 @@
-```jsx
+```jsx id="jlwm6q"
 import React, { useEffect, useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 import StationChart from "./components/StationChart.jsx";
 
 async function safeFetchJson(url) {
+
   const res = await fetch(url);
 
   if (!res.ok) {
@@ -14,9 +15,21 @@ async function safeFetchJson(url) {
 }
 
 function ymdHM(d) {
+
   const pad = (n) => String(n).padStart(2, "0");
 
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:00`;
+  return (
+    d.getFullYear() +
+    "-" +
+    pad(d.getMonth() + 1) +
+    "-" +
+    pad(d.getDate()) +
+    " " +
+    pad(d.getHours()) +
+    ":" +
+    pad(d.getMinutes()) +
+    ":00"
+  );
 }
 
 export default function App() {
@@ -38,10 +51,17 @@ export default function App() {
     0
   );
 
-  const defaultStart = new Date(defaultEnd.getTime() - 24 * 60 * 60 * 1000);
+  const defaultStart = new Date(
+    defaultEnd.getTime() - 24 * 60 * 60 * 1000
+  );
 
-  const [bd, setBd] = useState(ymdHM(defaultStart));
-  const [kt, setKt] = useState(ymdHM(defaultEnd));
+  const [bd, setBd] = useState(
+    ymdHM(defaultStart)
+  );
+
+  const [kt, setKt] = useState(
+    ymdHM(defaultEnd)
+  );
 
   useEffect(() => {
     loadStations();
@@ -51,7 +71,9 @@ export default function App() {
 
     try {
 
-      const response = await fetch("/thamso_khaithac.xlsx");
+      const response = await fetch(
+        "/thamso_khaithac.xlsx"
+      );
 
       const blob = await response.arrayBuffer();
 
@@ -59,9 +81,13 @@ export default function App() {
         type: "array"
       });
 
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const sheet =
+        workbook.Sheets[
+          workbook.SheetNames[0]
+        ];
 
-      const json = XLSX.utils.sheet_to_json(sheet);
+      const json =
+        XLSX.utils.sheet_to_json(sheet);
 
       setStations(json);
 
@@ -72,13 +98,19 @@ export default function App() {
     } catch (err) {
 
       console.error(err);
-      setErrorMsg("Không đọc được file tham số Excel");
 
+      setErrorMsg(
+        "Không đọc được file tham số Excel"
+      );
     }
   }
 
   const tramSelected = useMemo(() => {
-    return stations.find((s) => s.matram === matram);
+
+    return stations.find(function (s) {
+      return s.matram === matram;
+    });
+
   }, [stations, matram]);
 
   async function handleLoad() {
@@ -95,47 +127,70 @@ export default function App() {
       const params = new URLSearchParams({
         matram: tramSelected.matram,
         ten_table: tramSelected.Tab,
-        sophut: String(tramSelected.sophut || 10),
-        tinhtong: String(tramSelected.tinhtong || 0),
+        sophut: String(
+          tramSelected.sophut || 10
+        ),
+        tinhtong: String(
+          tramSelected.tinhtong || 0
+        ),
         thoigianbd: bd,
-        thoigiankt: kt,
+        thoigiankt: kt
       });
 
       const apiUrl =
-        `${tramSelected.API_LINK}?${params.toString()}`;
+        tramSelected.API_LINK +
+        "?" +
+        params.toString();
 
       const proxyUrl =
-        `/.netlify/functions/proxy?url=${encodeURIComponent(apiUrl)}`;
+        "/.netlify/functions/proxy?url=" +
+        encodeURIComponent(apiUrl);
 
-      const json = await safeFetchJson(proxyUrl);
+      const json =
+        await safeFetchJson(proxyUrl);
 
-      const rows = Array.isArray(json)
-        ? json
-        : Array.isArray(json?.data)
-        ? json.data
-        : [];
+      let rows = [];
 
-      const timeKey =
-        ["thoigian", "ThoiGian", "time"]
-          .find((k) => rows[0]?.[k] != null) || "thoigian";
+      if (Array.isArray(json)) {
+        rows = json;
+      } else if (
+        json &&
+        Array.isArray(json.data)
+      ) {
+        rows = json.data;
+      }
 
-      const valueKey =
-        ["giatri", "GiaTri", "nhietdo", "value"]
-          .find((k) => rows[0]?.[k] != null) || "giatri";
+      const normalized = rows.map(function (r) {
 
-      const normalized = rows.map((r) => ({
-        "Thời gian": r[timeKey],
-        "Nhiệt độ": Number(
-          String(r[valueKey]).replace(",", ".")
-        ),
-      }));
+        return {
+          "Thời gian":
+            r.thoigian ||
+            r.ThoiGian ||
+            r.time ||
+            "",
+
+          "Nhiệt độ":
+            Number(
+              String(
+                r.giatri ||
+                r.GiaTri ||
+                r.nhietdo ||
+                r.value ||
+                0
+              ).replace(",", ".")
+            )
+        };
+
+      });
 
       setTableRows(normalized);
 
     } catch (err) {
 
       console.error(err);
+
       setErrorMsg(err.message);
+
       setTableRows([]);
 
     } finally {
@@ -170,17 +225,24 @@ export default function App() {
           style={{
             border: "1px solid #ccc",
             padding: 15,
-            borderRadius: 10
+            borderRadius: 10,
+            background: "white"
           }}
         >
 
-          <h3>THÔNG SỐ KHAI THÁC</h3>
+          <h3>
+            THÔNG SỐ KHAI THÁC
+          </h3>
 
-          <label>Trạm</label>
+          <label>
+            Trạm
+          </label>
 
           <select
             value={matram}
-            onChange={(e) => setMatram(e.target.value)}
+            onChange={function (e) {
+              setMatram(e.target.value);
+            }}
             style={{
               width: "100%",
               padding: 8,
@@ -188,20 +250,31 @@ export default function App() {
             }}
           >
 
-            {stations.map((s, idx) => (
-              <option key={idx} value={s.matram}>
-                {s.tentram}
-              </option>
-            ))}
+            {stations.map(function (s, idx) {
+
+              return (
+                <option
+                  key={idx}
+                  value={s.matram}
+                >
+                  {s.tentram}
+                </option>
+              );
+
+            })}
 
           </select>
 
-          <label>Từ thời gian</label>
+          <label>
+            Từ thời gian
+          </label>
 
           <input
             type="text"
             value={bd}
-            onChange={(e) => setBd(e.target.value)}
+            onChange={function (e) {
+              setBd(e.target.value);
+            }}
             style={{
               width: "100%",
               padding: 8,
@@ -209,12 +282,16 @@ export default function App() {
             }}
           />
 
-          <label>Đến thời gian</label>
+          <label>
+            Đến thời gian
+          </label>
 
           <input
             type="text"
             value={kt}
-            onChange={(e) => setKt(e.target.value)}
+            onChange={function (e) {
+              setKt(e.target.value);
+            }}
             style={{
               width: "100%",
               padding: 8,
@@ -238,11 +315,21 @@ export default function App() {
           </button>
 
           {loading && (
-            <p>Đang tải dữ liệu...</p>
+            <p
+              style={{
+                color: "blue"
+              }}
+            >
+              Đang tải dữ liệu...
+            </p>
           )}
 
           {errorMsg && (
-            <p style={{ color: "red" }}>
+            <p
+              style={{
+                color: "red"
+              }}
+            >
               {errorMsg}
             </p>
           )}
@@ -256,34 +343,55 @@ export default function App() {
             cellPadding="6"
             style={{
               borderCollapse: "collapse",
-              width: "100%"
+              width: "100%",
+              background: "white"
             }}
           >
 
             <thead>
               <tr>
-                <th>Thời gian</th>
-                <th>Nhiệt độ</th>
+                <th>
+                  Thời gian
+                </th>
+
+                <th>
+                  Nhiệt độ
+                </th>
               </tr>
             </thead>
 
             <tbody>
 
-              {tableRows.map((row, idx) => (
-                <tr key={idx}>
-                  <td>{row["Thời gian"]}</td>
-                  <td>
-                    {row["Nhiệt độ"]} °C
-                  </td>
-                </tr>
-              ))}
+              {tableRows.map(function (row, idx) {
+
+                return (
+                  <tr key={idx}>
+
+                    <td>
+                      {row["Thời gian"]}
+                    </td>
+
+                    <td>
+                      {row["Nhiệt độ"]} °C
+                    </td>
+
+                  </tr>
+                );
+
+              })}
 
             </tbody>
 
           </table>
 
-          <div style={{ marginTop: 20 }}>
-            <StationChart rows={tableRows} />
+          <div
+            style={{
+              marginTop: 20
+            }}
+          >
+            <StationChart
+              rows={tableRows}
+            />
           </div>
 
         </div>
