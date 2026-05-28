@@ -21,14 +21,12 @@ function ymdHM(d) {
     pad(d.getMonth() + 1) +
     "-" +
     pad(d.getDate()) +
-    " " +
+    "+" +
     pad(d.getHours()) +
     ":" +
-    pad(d.getMinutes()) +
-    ":00"
+    pad(d.getMinutes())
   );
 }
-
 export default function App() {
   const [stations, setStations] = useState([]);
   const [matram, setMatram] = useState("");
