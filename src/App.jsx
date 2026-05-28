@@ -9,9 +9,8 @@ async function safeFetchJson(url) {
     throw new Error("HTTP " + res.status);
   }
 
-  return await res.json();
+  return await res.text();
 }
-
 function ymdHM(d) {
   const pad = (n) => String(n).padStart(2, "0");
 
@@ -119,8 +118,14 @@ export default function App() {
         "/.netlify/functions/proxy?url=" +
         encodeURIComponent(apiUrl);
 
-      const json = await safeFetchJson(proxyUrl);
-
+        const html = await safeFetchJson(proxyUrl);
+        
+        console.log(html);
+        
+        setErrorMsg("Đã nhận dữ liệu từ API");
+        
+        return;
+      
       let rows = [];
 
       if (Array.isArray(json)) {
