@@ -130,9 +130,16 @@ export default function App() {
 
       const html =
         await safeFetchText(proxyUrl);
-
+      
       console.log(html);
-
+      
+      setTableRows([
+        {
+          "Thời gian": "Đã nhận HTML",
+          "Nhiệt độ": html.substring(0, 200)
+        }
+      ]);
+      
       setErrorMsg(
         "Đã nhận dữ liệu HTML từ API thành công"
       );
