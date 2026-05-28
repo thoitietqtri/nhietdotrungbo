@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 import StationChart from "./components/StationChart.jsx";
 
-async function safeFetchJson(url) {
+async function safeFetchText(url) {
   const res = await fetch(url);
 
   if (!res.ok) {
@@ -11,6 +11,7 @@ async function safeFetchJson(url) {
 
   return await res.text();
 }
+
 function ymdHM(d) {
   const pad = (n) => String(n).padStart(2, "0");
 
@@ -88,13 +89,18 @@ export default function App() {
   }
 
   const tramSelected = useMemo(() => {
-    return stations.find((s) => s.matram === matram);
+    return stations.find(
+      (s) => s.matram === matram
+    );
   }, [stations, matram]);
 
   async function handleLoad() {
     try {
       setLoading(true);
+
       setErrorMsg("");
+
+      setTableRows([]);
 
       if (!tramSelected) {
         throw new Error("Chưa chọn trạm");
@@ -103,8 +109,12 @@ export default function App() {
       const params = new URLSearchParams({
         matram: tramSelected.matram,
         ten_table: tramSelected.Tab,
-        sophut: String(tramSelected.sophut || 10),
-        tinhtong: String(tramSelected.tinhtong || 0),
+        sophut: String(
+          tramSelected.sophut || 10
+        ),
+        tinhtong: String(
+          tramSelected.tinhtong || 0
+        ),
         thoigianbd: bd,
         thoigiankt: kt,
       });
@@ -118,49 +128,25 @@ export default function App() {
         "/.netlify/functions/proxy?url=" +
         encodeURIComponent(apiUrl);
 
-        const html = await safeFetchJson(proxyUrl);
-        
-        console.log(html);
-        
-        setErrorMsg("Đã nhận dữ liệu từ API");
-        
-        return;
-      
-      let rows = [];
+      const html =
+        await safeFetchText(proxyUrl);
 
-      if (Array.isArray(json)) {
-        rows = json;
-      } else if (json && Array.isArray(json.data)) {
-        rows = json.data;
-      }
+      console.log(html);
 
-      const normalized = rows.map((r) => ({
-        "Thời gian":
-          r.thoigian ||
-          r.ThoiGian ||
-          r.time ||
-          "",
+      setErrorMsg(
+        "Đã nhận dữ liệu HTML từ API thành công"
+      );
 
-        "Nhiệt độ": Number(
-          String(
-            r.giatri ||
-            r.GiaTri ||
-            r.nhietdo ||
-            r.value ||
-            0
-          ).replace(",", ".")
-        ),
-      }));
-
-      setTableRows(normalized);
     } catch (err) {
+
       console.error(err);
 
       setErrorMsg(err.message);
 
-      setTableRows([]);
     } finally {
+
       setLoading(false);
+
     }
   }
 
@@ -171,26 +157,36 @@ export default function App() {
         fontFamily: "Arial",
       }}
     >
-      <h1>
+      <h1
+        style={{
+          color: "#d60000",
+        }}
+      >
         HỆ THỐNG THEO DÕI NHIỆT ĐỘ MAX TRUNG BỘ
       </h1>
 
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "300px 1fr",
+          gridTemplateColumns: "350px 1fr",
           gap: 20,
         }}
       >
         <div
           style={{
             border: "1px solid #ccc",
-            padding: 15,
-            borderRadius: 10,
+            padding: 20,
+            borderRadius: 12,
             background: "white",
           }}
         >
-          <h3>THÔNG SỐ KHAI THÁC</h3>
+          <h2
+            style={{
+              color: "#002b6b",
+            }}
+          >
+            THÔNG SỐ KHAI THÁC
+          </h2>
 
           <label>Trạm</label>
 
@@ -201,8 +197,9 @@ export default function App() {
             }
             style={{
               width: "100%",
-              padding: 8,
-              marginBottom: 10,
+              padding: 10,
+              marginTop: 5,
+              marginBottom: 20,
             }}
           >
             {stations.map((s, idx) => (
@@ -220,11 +217,14 @@ export default function App() {
           <input
             type="text"
             value={bd}
-            onChange={(e) => setBd(e.target.value)}
+            onChange={(e) =>
+              setBd(e.target.value)
+            }
             style={{
               width: "100%",
-              padding: 8,
-              marginBottom: 10,
+              padding: 10,
+              marginTop: 5,
+              marginBottom: 20,
             }}
           />
 
@@ -233,11 +233,14 @@ export default function App() {
           <input
             type="text"
             value={kt}
-            onChange={(e) => setKt(e.target.value)}
+            onChange={(e) =>
+              setKt(e.target.value)
+            }
             style={{
               width: "100%",
-              padding: 8,
-              marginBottom: 10,
+              padding: 10,
+              marginTop: 5,
+              marginBottom: 20,
             }}
           />
 
@@ -245,25 +248,38 @@ export default function App() {
             onClick={handleLoad}
             style={{
               width: "100%",
-              padding: 12,
-              background: "red",
+              padding: 14,
+              background: "#ff0022",
               color: "white",
               border: "none",
-              borderRadius: 8,
+              borderRadius: 10,
               cursor: "pointer",
+              fontSize: 20,
+              fontWeight: "bold",
             }}
           >
             KHAI THÁC NHIỆT ĐỘ
           </button>
 
           {loading && (
-            <p style={{ color: "blue" }}>
+            <p
+              style={{
+                color: "blue",
+                marginTop: 20,
+              }}
+            >
               Đang tải dữ liệu...
             </p>
           )}
 
           {errorMsg && (
-            <p style={{ color: "red" }}>
+            <p
+              style={{
+                color: "red",
+                marginTop: 20,
+                fontWeight: "bold",
+              }}
+            >
               {errorMsg}
             </p>
           )}
@@ -280,7 +296,12 @@ export default function App() {
             }}
           >
             <thead>
-              <tr>
+              <tr
+                style={{
+                  background: "#e60012",
+                  color: "white",
+                }}
+              >
                 <th>Thời gian</th>
                 <th>Nhiệt độ</th>
               </tr>
@@ -289,18 +310,30 @@ export default function App() {
             <tbody>
               {tableRows.map((row, idx) => (
                 <tr key={idx}>
-                  <td>{row["Thời gian"]}</td>
-                  <td>{row["Nhiệt độ"]} °C</td>
+                  <td>
+                    {row["Thời gian"]}
+                  </td>
+
+                  <td>
+                    {row["Nhiệt độ"]} °C
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
 
-          <div style={{ marginTop: 20 }}>
-            <StationChart rows={tableRows} />
+          <div
+            style={{
+              marginTop: 20,
+            }}
+          >
+            <StationChart
+              rows={tableRows}
+            />
           </div>
         </div>
       </div>
     </div>
   );
 }
+
