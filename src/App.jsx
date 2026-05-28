@@ -5,11 +5,13 @@ import StationChart from "./components/StationChart.jsx";
 async function safeFetchText(url) {
   const res = await fetch(url);
 
+  const text = await res.text();
+
   if (!res.ok) {
-    throw new Error("HTTP " + res.status);
+    throw new Error(text || "Lỗi API");
   }
 
-  return await res.text();
+  return text;
 }
 
 function ymdHM(d) {
@@ -21,12 +23,14 @@ function ymdHM(d) {
     pad(d.getMonth() + 1) +
     "-" +
     pad(d.getDate()) +
-    "+" +
+    " " +
     pad(d.getHours()) +
     ":" +
-    pad(d.getMinutes())
+    pad(d.getMinutes()) +
+    ":00"
   );
 }
+
 export default function App() {
   const [stations, setStations] = useState([]);
   const [matram, setMatram] = useState("");
@@ -58,16 +62,21 @@ export default function App() {
 
   async function loadStations() {
     try {
-      const response = await fetch("/thamso_khaithac.xlsx");
+      const response = await fetch(
+        "/thamso_khaithac.xlsx"
+      );
 
-      const blob = await response.arrayBuffer();
+      const blob =
+        await response.arrayBuffer();
 
       const workbook = XLSX.read(blob, {
         type: "array",
       });
 
       const sheet =
-        workbook.Sheets[workbook.SheetNames[0]];
+        workbook.Sheets[
+          workbook.SheetNames[0]
+        ];
 
       const json =
         XLSX.utils.sheet_to_json(sheet);
@@ -104,18 +113,27 @@ export default function App() {
         throw new Error("Chưa chọn trạm");
       }
 
-      const params = new URLSearchParams({
-        matram: tramSelected.matram,
-        ten_table: tramSelected.Tab,
-        sophut: String(
-          tramSelected.sophut || 10
-        ),
-        tinhtong: String(
-          tramSelected.tinhtong || 0
-        ),
-        thoigianbd: bd,
-        thoigiankt: kt,
-      });
+      const quote = (s) => `'${s}'`;
+
+      const params =
+        new URLSearchParams({
+          matram: tramSelected.matram,
+
+          ten_table:
+            tramSelected.Tab,
+
+          sophut: String(
+            tramSelected.sophut || 10
+          ),
+
+          tinhtong: String(
+            tramSelected.tinhtong || 0
+          ),
+
+          thoigianbd: quote(bd),
+
+          thoigiankt: quote(kt),
+        });
 
       const apiUrl =
         tramSelected.API_LINK +
@@ -123,30 +141,59 @@ export default function App() {
         params.toString();
 
       const proxyUrl =
-        "/.netlify/functions/proxy?url=" +
-        encodeURIComponent(apiUrl);
+        "/.netlify/functions/proxy?" +
+        params.toString();
+
+      console.log(proxyUrl);
 
       const html =
         await safeFetchText(proxyUrl);
-      
+
       console.log(html);
-      
-      setTableRows([ { "Thời gian": "HTML trả về", "Nhiệt độ": html } ]);
-      
-      setErrorMsg(
-        "Đã nhận dữ liệu HTML từ API thành công"
-      );
 
+      const parser = new DOMParser();
+
+      const doc =
+        parser.parseFromString(
+          html,
+          "text/html"
+        );
+
+      const trs =
+        doc.querySelectorAll("tr");
+
+      const rows = [];
+
+      trs.forEach((tr) => {
+        const tds =
+          tr.querySelectorAll("td");
+
+        if (tds.length >= 2) {
+          rows.push({
+            "Thời gian":
+              tds[0].innerText.trim(),
+
+            "Nhiệt độ":
+              tds[1].innerText.trim(),
+          });
+        }
+      });
+
+      if (rows.length === 0) {
+        setErrorMsg(
+          "Không tìm thấy dữ liệu nhiệt độ"
+        );
+      }
+
+      setTableRows(rows);
     } catch (err) {
-
       console.error(err);
 
       setErrorMsg(err.message);
 
+      setTableRows([]);
     } finally {
-
       setLoading(false);
-
     }
   }
 
@@ -160,29 +207,35 @@ export default function App() {
       <h1
         style={{
           color: "#d60000",
+          fontSize: 48,
+          marginBottom: 20,
         }}
       >
-        HỆ THỐNG THEO DÕI NHIỆT ĐỘ MAX TRUNG BỘ
+        HỆ THỐNG THEO DÕI NHIỆT ĐỘ MAX
+        TRUNG BỘ
       </h1>
 
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "350px 1fr",
+          gridTemplateColumns:
+            "380px 1fr",
           gap: 20,
         }}
       >
         <div
           style={{
-            border: "1px solid #ccc",
+            border:
+              "1px solid #cccccc",
+            borderRadius: 15,
             padding: 20,
-            borderRadius: 12,
-            background: "white",
+            background: "#ffffff",
           }}
         >
           <h2
             style={{
-              color: "#002b6b",
+              color: "#0b2c6b",
+              marginBottom: 20,
             }}
           >
             THÔNG SỐ KHAI THÁC
@@ -197,9 +250,10 @@ export default function App() {
             }
             style={{
               width: "100%",
-              padding: 10,
+              padding: 12,
               marginTop: 5,
               marginBottom: 20,
+              borderRadius: 8,
             }}
           >
             {stations.map((s, idx) => (
@@ -222,9 +276,10 @@ export default function App() {
             }
             style={{
               width: "100%",
-              padding: 10,
+              padding: 12,
               marginTop: 5,
               marginBottom: 20,
+              borderRadius: 8,
             }}
           />
 
@@ -238,39 +293,32 @@ export default function App() {
             }
             style={{
               width: "100%",
-              padding: 10,
+              padding: 12,
               marginTop: 5,
               marginBottom: 20,
+              borderRadius: 8,
             }}
           />
 
           <button
             onClick={handleLoad}
+            disabled={loading}
             style={{
               width: "100%",
-              padding: 14,
-              background: "#ff0022",
+              padding: 15,
+              background: "#ff002f",
               color: "white",
               border: "none",
               borderRadius: 10,
-              cursor: "pointer",
-              fontSize: 20,
+              fontSize: 22,
               fontWeight: "bold",
+              cursor: "pointer",
             }}
           >
-            KHAI THÁC NHIỆT ĐỘ
+            {loading
+              ? "ĐANG TẢI..."
+              : "KHAI THÁC NHIỆT ĐỘ"}
           </button>
-
-          {loading && (
-            <p
-              style={{
-                color: "blue",
-                marginTop: 20,
-              }}
-            >
-              Đang tải dữ liệu...
-            </p>
-          )}
 
           {errorMsg && (
             <p
@@ -288,9 +336,10 @@ export default function App() {
         <div>
           <table
             border="1"
-            cellPadding="6"
+            cellPadding="8"
             style={{
-              borderCollapse: "collapse",
+              borderCollapse:
+                "collapse",
               width: "100%",
               background: "white",
             }}
@@ -298,27 +347,39 @@ export default function App() {
             <thead>
               <tr
                 style={{
-                  background: "#e60012",
+                  background:
+                    "#e50019",
                   color: "white",
                 }}
               >
                 <th>Thời gian</th>
+
                 <th>Nhiệt độ</th>
               </tr>
             </thead>
 
             <tbody>
-              {tableRows.map((row, idx) => (
-                <tr key={idx}>
-                  <td>
-                    {row["Thời gian"]}
-                  </td>
+              {tableRows.map(
+                (row, idx) => (
+                  <tr key={idx}>
+                    <td>
+                      {
+                        row[
+                          "Thời gian"
+                        ]
+                      }
+                    </td>
 
-                  <td>
-                    style={{ maxWidth: "700px", wordBreak: "break-all", fontSize: "12px" }} > {row["Nhiệt độ"]}
-                  </td>
-                </tr>
-              ))}
+                    <td>
+                      {
+                        row[
+                          "Nhiệt độ"
+                        ]
+                      }
+                    </td>
+                  </tr>
+                )
+              )}
             </tbody>
           </table>
 
