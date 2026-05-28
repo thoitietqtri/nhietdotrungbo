@@ -133,12 +133,7 @@ export default function App() {
       
       console.log(html);
       
-      setTableRows([
-        {
-          "Thời gian": "Đã nhận HTML",
-          "Nhiệt độ": html.substring(0, 200)
-        }
-      ]);
+      setTableRows([ { "Thời gian": "HTML trả về", "Nhiệt độ": html } ]);
       
       setErrorMsg(
         "Đã nhận dữ liệu HTML từ API thành công"
@@ -322,7 +317,7 @@ export default function App() {
                   </td>
 
                   <td>
-                    {row["Nhiệt độ"]} °C
+                    style={{ maxWidth: "700px", wordBreak: "break-all", fontSize: "12px" }} > {row["Nhiệt độ"]}
                   </td>
                 </tr>
               ))}
