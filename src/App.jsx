@@ -1,21 +1,27 @@
-import React, { useEffect, useMemo, useState } from "react";
-import * as XLSX from "xlsx";
-import StationChart from "./components/StationChart.jsx";
+```jsx
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
-async function safeFetchText(url) {
+import * as XLSX from "xlsx";
+
+async function fetchText(url) {
   const res = await fetch(url);
 
   const text = await res.text();
 
   if (!res.ok) {
-    throw new Error(text || "Lỗi API");
+    throw new Error(text);
   }
 
   return text;
 }
 
 function ymdHM(d) {
-  const pad = (n) => String(n).padStart(2, "0");
+  const pad = (n) =>
+    String(n).padStart(2, "0");
 
   return (
     d.getFullYear() +
@@ -32,11 +38,20 @@ function ymdHM(d) {
 }
 
 export default function App() {
-  const [stations, setStations] = useState([]);
-  const [matram, setMatram] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [tableRows, setTableRows] = useState([]);
+  const [stations, setStations] =
+    useState([]);
+
+  const [matram, setMatram] =
+    useState("");
+
+  const [tableRows, setTableRows] =
+    useState([]);
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [errorMsg, setErrorMsg] =
+    useState("");
 
   const now = new Date();
 
@@ -50,11 +65,17 @@ export default function App() {
   );
 
   const defaultStart = new Date(
-    defaultEnd.getTime() - 24 * 60 * 60 * 1000
+    defaultEnd.getTime() -
+      24 * 60 * 60 * 1000
   );
 
-  const [bd, setBd] = useState(ymdHM(defaultStart));
-  const [kt, setKt] = useState(ymdHM(defaultEnd));
+  const [bd, setBd] = useState(
+    ymdHM(defaultStart)
+  );
+
+  const [kt, setKt] = useState(
+    ymdHM(defaultEnd)
+  );
 
   useEffect(() => {
     loadStations();
@@ -90,7 +111,7 @@ export default function App() {
       console.error(err);
 
       setErrorMsg(
-        "Không đọc được file tham số Excel"
+        "Không đọc được file Excel"
       );
     }
   }
@@ -110,24 +131,29 @@ export default function App() {
       setTableRows([]);
 
       if (!tramSelected) {
-        throw new Error("Chưa chọn trạm");
+        throw new Error(
+          "Chưa chọn trạm"
+        );
       }
 
       const quote = (s) => `'${s}'`;
 
       const params =
         new URLSearchParams({
-          matram: tramSelected.matram,
+          matram:
+            tramSelected.matram,
 
           ten_table:
             tramSelected.Tab,
 
           sophut: String(
-            tramSelected.sophut || 10
+            tramSelected.sophut ||
+              60
           ),
 
           tinhtong: String(
-            tramSelected.tinhtong || 0
+            tramSelected.tinhtong ||
+              0
           ),
 
           thoigianbd: quote(bd),
@@ -141,17 +167,18 @@ export default function App() {
         params.toString();
 
       const proxyUrl =
-        "/.netlify/functions/proxy?" +
-        params.toString();
+        "/.netlify/functions/proxy?url=" +
+        encodeURIComponent(apiUrl);
 
       console.log(proxyUrl);
 
       const html =
-        await safeFetchText(proxyUrl);
+        await fetchText(proxyUrl);
 
       console.log(html);
 
-      const parser = new DOMParser();
+      const parser =
+        new DOMParser();
 
       const doc =
         parser.parseFromString(
@@ -170,28 +197,26 @@ export default function App() {
 
         if (tds.length >= 2) {
           rows.push({
-            "Thời gian":
+            thoigian:
               tds[0].innerText.trim(),
 
-            "Nhiệt độ":
+            nhietdo:
               tds[1].innerText.trim(),
           });
         }
       });
 
+      setTableRows(rows);
+
       if (rows.length === 0) {
         setErrorMsg(
-          "Không tìm thấy dữ liệu nhiệt độ"
+          "Không có dữ liệu"
         );
       }
-
-      setTableRows(rows);
     } catch (err) {
       console.error(err);
 
       setErrorMsg(err.message);
-
-      setTableRows([]);
     } finally {
       setLoading(false);
     }
@@ -207,37 +232,29 @@ export default function App() {
       <h1
         style={{
           color: "#d60000",
-          fontSize: 48,
-          marginBottom: 20,
         }}
       >
         HỆ THỐNG THEO DÕI NHIỆT ĐỘ MAX
-        TRUNG BỘ
       </h1>
 
       <div
         style={{
           display: "grid",
           gridTemplateColumns:
-            "380px 1fr",
+            "350px 1fr",
           gap: 20,
         }}
       >
         <div
           style={{
             border:
-              "1px solid #cccccc",
-            borderRadius: 15,
+              "1px solid #ccc",
             padding: 20,
-            background: "#ffffff",
+            borderRadius: 10,
+            background: "white",
           }}
         >
-          <h2
-            style={{
-              color: "#0b2c6b",
-              marginBottom: 20,
-            }}
-          >
+          <h2>
             THÔNG SỐ KHAI THÁC
           </h2>
 
@@ -246,57 +263,66 @@ export default function App() {
           <select
             value={matram}
             onChange={(e) =>
-              setMatram(e.target.value)
+              setMatram(
+                e.target.value
+              )
             }
             style={{
               width: "100%",
-              padding: 12,
+              padding: 10,
               marginTop: 5,
               marginBottom: 20,
-              borderRadius: 8,
             }}
           >
-            {stations.map((s, idx) => (
-              <option
-                key={idx}
-                value={s.matram}
-              >
-                {s.tentram}
-              </option>
-            ))}
+            {stations.map(
+              (s, idx) => (
+                <option
+                  key={idx}
+                  value={s.matram}
+                >
+                  {s.tentram}
+                </option>
+              )
+            )}
           </select>
 
-          <label>Từ thời gian</label>
+          <label>
+            Từ thời gian
+          </label>
 
           <input
             type="text"
             value={bd}
             onChange={(e) =>
-              setBd(e.target.value)
+              setBd(
+                e.target.value
+              )
             }
             style={{
               width: "100%",
-              padding: 12,
+              padding: 10,
               marginTop: 5,
               marginBottom: 20,
-              borderRadius: 8,
             }}
           />
 
-          <label>Đến thời gian</label>
+          <label>
+            Đến thời gian
+          </label>
 
           <input
             type="text"
             value={kt}
             onChange={(e) =>
-              setKt(e.target.value)
+              setKt(
+                e.target.value
+              )
             }
             style={{
               width: "100%",
-              padding: 12,
+              padding: 10,
               marginTop: 5,
               marginBottom: 20,
-              borderRadius: 8,
             }}
           />
 
@@ -305,19 +331,19 @@ export default function App() {
             disabled={loading}
             style={{
               width: "100%",
-              padding: 15,
-              background: "#ff002f",
+              padding: 14,
+              background: "#e60012",
               color: "white",
               border: "none",
               borderRadius: 10,
-              fontSize: 22,
+              fontSize: 20,
               fontWeight: "bold",
               cursor: "pointer",
             }}
           >
             {loading
               ? "ĐANG TẢI..."
-              : "KHAI THÁC NHIỆT ĐỘ"}
+              : "KHAI THÁC"}
           </button>
 
           {errorMsg && (
@@ -338,23 +364,26 @@ export default function App() {
             border="1"
             cellPadding="8"
             style={{
+              width: "100%",
               borderCollapse:
                 "collapse",
-              width: "100%",
               background: "white",
             }}
           >
-            <thead>
-              <tr
-                style={{
-                  background:
-                    "#e50019",
-                  color: "white",
-                }}
-              >
-                <th>Thời gian</th>
+            <thead
+              style={{
+                background: "#e60012",
+                color: "white",
+              }}
+            >
+              <tr>
+                <th>
+                  Thời gian
+                </th>
 
-                <th>Nhiệt độ</th>
+                <th>
+                  Nhiệt độ
+                </th>
               </tr>
             </thead>
 
@@ -364,17 +393,13 @@ export default function App() {
                   <tr key={idx}>
                     <td>
                       {
-                        row[
-                          "Thời gian"
-                        ]
+                        row.thoigian
                       }
                     </td>
 
                     <td>
                       {
-                        row[
-                          "Nhiệt độ"
-                        ]
+                        row.nhietdo
                       }
                     </td>
                   </tr>
@@ -382,19 +407,9 @@ export default function App() {
               )}
             </tbody>
           </table>
-
-          <div
-            style={{
-              marginTop: 20,
-            }}
-          >
-            <StationChart
-              rows={tableRows}
-            />
-          </div>
         </div>
       </div>
     </div>
   );
 }
-
+```
