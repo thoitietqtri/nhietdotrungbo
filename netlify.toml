@@ -1,0 +1,6 @@
+[functions]
+  directory = "netlify/functions"
+
+# (Tuỳ chọn) chỉ định bundler để Netlify build function ổn định
+[functions."proxy"]
+  node_bundler = "esbuild"
