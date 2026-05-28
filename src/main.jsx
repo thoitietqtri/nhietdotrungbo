@@ -1,4 +1,3 @@
-```jsx id="8nq7j4"
 import React from "react";
 import ReactDOM from "react-dom/client";
 
@@ -13,4 +12,3 @@ ReactDOM.createRoot(
     <App />
   </React.StrictMode>
 );
-```
