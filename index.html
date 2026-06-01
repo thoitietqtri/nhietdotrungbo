@@ -560,7 +560,7 @@ function renderChart(rows){
   // Tiêu đề
   const title = document.createElement('div');
   title.style.cssText='font-size:12px;color:#64748b;margin-bottom:8px';
-  title.textContent='Đồ thị quá trình mực nước — dữ liệu từ bảng đang hiển thị.';
+  title.textContent='Đồ thị đường quá trình nhiệt độ — dữ liệu từ bảng đang hiển thị.';
   host.appendChild(title);
 
   const {series, xType, xValues, xLabels} = buildSeriesFromRows(rows);
