@@ -164,7 +164,7 @@
     <!-- Chọn trạm & thời gian -->
     <div class="section">
       <h3 class="section-title">Chọn trạm & thời gian</h3>
-      <label>Chọn các trạm để lấy dữ liệu (Giữ Ctrl/Shift để chọn nhiều)</label>
+      <label>Chọn trạm tự động (Giữ Ctrl/Shift để chọn nhiều)</label>
       <select id="multiSelect" multiple size="6" style="height:160px"></select>
       <div class="status" style="color:var(--muted)">Mặc định chọn tất cả trạm. Bỏ chọn trạm không cần (Ctrl+click).</div>
 
@@ -203,7 +203,7 @@
     <div class="section">
       <h3 class="section-title">Thao tác</h3>
       <div class="row">
-        <button id="btnFetch" class="btn">Lấy dữ liệu</button>
+        <button id="btnFetch" class="btn">Tải số liệu từ các trạm tự động</button>
         <button id="btnClear" class="btn secondary">Xoá kết quả</button>
       </div>
     </div>
@@ -219,7 +219,7 @@
           </select>
         </div>
       </div>
-      <div id="provinceDashboard" style="font-size:12px;color:#64748b">Chưa có dữ liệu. Bấm "Lấy dữ liệu".</div>
+      <div id="provinceDashboard" style="font-size:12px;color:#64748b">Chưa có dữ liệu. Bấm "Tải số liệu từ các trạm tự động".</div>
       <div id="tempWarning" style="margin-top:10px;padding:8px;border-radius:10px;background:#ecfdf5;color:#047857;font-size:13px;font-weight:700;text-align:center">✅ Nhiệt độ bình thường</div>
     </div>
 
@@ -229,7 +229,7 @@
   <!-- ===== MAIN ===== -->
   <main style="display:grid; gap:16px;">
     <div class="card toolbar">
-      <div class="summary" id="summary">Chưa có dữ liệu. Hãy chọn trạm & thời gian rồi bấm “Lấy dữ liệu”.</div>
+      <div class="summary" id="summary">Chưa có số liệu. Hãy chọn trạm & thời gian rồi bấm “Tải số liệu từ các trạm tự động”.</div>
       <div class="toolbar-actions">
         <button id="btnExport" class="btn ghost" disabled>Tải CSV</button>
         <button id="btnExportXlsx" class="btn ghost" disabled>Tải Excel (.xlsx)</button>
@@ -748,7 +748,7 @@ async function init(){
     const sStr=fmt(s), eStr=fmt(e);
 
     const datasets={};
-    $('#summary').textContent='Đang lấy dữ liệu…';
+    $('#summary').textContent='Đang tải số liệu…';
     await Promise.all(indices.map(async idx=>{
       const r=stations[idx];
       const ten_table=($('#tenTable').value.trim()||r.Tab||'mucnuoc_oday');
